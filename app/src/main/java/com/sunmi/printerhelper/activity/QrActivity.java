@@ -1,5 +1,6 @@
 package com.sunmi.printerhelper.activity;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
@@ -9,10 +10,14 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import com.sunmi.externalprinterlibrary.api.ConnectCallback;
+import com.sunmi.externalprinterlibrary.api.SunmiPrinter;
+import com.sunmi.externalprinterlibrary.api.SunmiPrinterApi;
 import com.sunmi.printerhelper.R;
 import com.sunmi.printerhelper.utils.BitmapUtil;
 import com.sunmi.printerhelper.utils.BluetoothUtil;
 import com.sunmi.printerhelper.utils.ESCUtil;
+import com.sunmi.printerhelper.utils.SunmiNetPrintHelper;
 import com.sunmi.printerhelper.utils.SunmiPrintHelper;
 
 import sunmi.sunmiui.dialog.DialogCreater;
@@ -38,6 +43,7 @@ public class QrActivity extends BaseActivity {
         setContentView(R.layout.activity_qr);
         setMyTitle(R.string.qr_title);
         setBack();
+        initNet(this);
 
         mImageView = findViewById(R.id.qr_image);
         mTextView1 = findViewById(R.id.qr_text_content);
@@ -131,18 +137,82 @@ public class QrActivity extends BaseActivity {
         });
     }
 
-    public void onClick(View view) {
-        Bitmap bitmap = BitmapUtil.generateBitmap(mTextView1.getText().toString(), 9, 700, 700);
-        if (bitmap != null) {
-            mImageView.setImageDrawable(new BitmapDrawable(bitmap));
+
+
+    public void onClick(final View view) {
+
+        try{
+            System.out.println( "打印机连接状态 "+SunmiPrinterApi.getInstance().isConnected());
+        }catch (Exception e){
+
+        }
+        SunmiNetPrintHelper printHelper=  SunmiNetPrintHelper.getInstance(view.getContext());
+        printHelper.initPrinterService("192.168.232.106");
+        printHelper.printText("你好");
+
+
+
+    }
+
+    private void  printText(Context context){
+
+        try {
+            SunmiPrinterApi.getInstance().setFontZoom(2,2);
+            SunmiPrinterApi.getInstance().setAlignMode(1);
+            for (int i = 0; i < 20; i++) {
+                SunmiPrinterApi.getInstance().printText("测试打印效果 " + i + "\n");
+            }
+//            SunmiPrinterApi.getInstance().cutPaper(20, 5);
+//            SunmiPrinterApi.getInstance().disconnectPrinter(context);
+        }
+        catch (Exception e) {
+            System.out.println( e);
         }
 
-        if (!BluetoothUtil.isBlueToothPrinter) {
-            SunmiPrintHelper.getInstance().printQr(mTextView1.getText().toString(), print_size, error_level);
-            SunmiPrintHelper.getInstance().feedPaper();
-        } else {
-            BluetoothUtil.sendData(ESCUtil.getPrintQRCode(mTextView1.getText().toString(), print_size, error_level));
-            BluetoothUtil.sendData(ESCUtil.nextLine(3));
+    }
+
+
+
+    private void initNet(Context context) {
+        try {
+            SunmiPrinterApi.getInstance().setPrinter(SunmiPrinter.SunmiNetPrinter,"192.168.232.106");
+            //2、连接打印机
+            SunmiPrinterApi.getInstance().connectPrinter(context, new ConnectCallback() {
+                @Override
+                public void onFound() {
+                    System.out.println("onfund");
+                    //发现打印机会回调此⽅法
+                }
+
+                @Override
+                public void onUnfound() {
+                    System.out.println("not found print");
+                    //如果没找到打印机会回调此⽅法
+                }
+
+                @Override
+                public void onConnect() {
+                    //连接成功后会回调此⽅法，则可以打印
+                    try{
+                        System.out.println("connect print");
+
+
+                    }catch (Exception e){
+                        System.out.println("connect print error");
+                    }
+                }
+
+                @Override
+                public void onDisconnect() {
+                    System.out.println("onDisconnect print");
+                    //连接中打印机断开会回调此⽅法，此时将中断打印
+
+                }
+            });
+        } catch (Exception e) {
+         System.out.println( e);
         }
     }
+
+
 }

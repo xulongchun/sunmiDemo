@@ -26,8 +26,9 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     //Used for Demo Ui interface display, has nothing to do with function
     implementation 'com.sunmi:sunmiui:1.1.27'
-    //zxing to generate barcode
+    //zxing to generate barcodeg
     implementation files('libs/core-3.3.0.jar')
-    implementation 'com.sunmi:printerlibrary:1.0.18'
+    implementation 'com.sunmi:printerlibrary:1.0.19'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    compile 'com.sunmi:external-printerlibrary:1.0.9'
 }
